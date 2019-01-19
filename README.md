@@ -20,5 +20,5 @@ clicking on individual notebook files, you will access the live course notebooks
 + Use the green `download` button above on the right upper side of the page and download a ZIP archive to your local machine. Unzip the archive. Then use your own Jupyter Notebook server to navigate to the directory created by the unzip operation and upload the notebook files. In this case the files will not be updated and you will need to return to the repository for getting new files or updated versions of previously downloaded files.
 
 Thanks in advance for inputs to improve this course.\
-Regards,\ 
+Regards,\
 Valmor.
