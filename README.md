@@ -1,5 +1,6 @@
 # Engy-4350 Nuclear Reactor Engineering
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dpploy/engy-4350/master)
+[![NBViewer](https://github.com/jupyter/design/blob/master/logos/Badges/nbviewer_badge.svg)](http://nbviewer.jupyter.org/github/dpploy/engy-4350/tree/master/notebooks)
 
     University of Massachusetts Lowell, Spring 2019
     Dept. of Chemical Engineering
