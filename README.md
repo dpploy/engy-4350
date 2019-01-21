@@ -4,7 +4,7 @@
     Dept. of Chemical Engineering
     Prof. Valmor F. de Almeida (valmor_dealmeida@uml.edu)
 
-The goal of this course is to present to students of nuclear chemical engineering the elements of nuclear energy conversion to (electrical) work. This is done primarily (in large scale power reactors) by converting nuclear heat into work. Although there are direct ways to convert nuclear energy into work, the focus of this course is in the prevalent mode of energy transfer using nuclear heat.
+The goal of this course is to present to students of nuclear chemical engineering the elements of nuclear energy conversion to (electrical) work. This is done primarily in large scale power reactors by using nuclear heat. Although there are direct ways to convert nuclear energy into work, the focus of this course is in the prevalent mode of energy transfer using nuclear heat.
 
 Feedback and collaboration to improve this course are welcome through GitHub `pull requests` and `issues` or direct email.
 
