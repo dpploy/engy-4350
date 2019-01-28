@@ -2,6 +2,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
+doc/*
+*.pdf
+.DS_Store
+*.swp
 
 # C extensions
 *.so
