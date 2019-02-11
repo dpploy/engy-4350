@@ -5,3 +5,4 @@ pytest
 scipy
 plotly
 ipywidgets
+mendeleev
