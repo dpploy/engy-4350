@@ -1,3 +1,4 @@
+pip
 matplotlib
 numpy
 pandas
@@ -6,3 +7,4 @@ scipy
 plotly
 ipywidgets
 mendeleev
+jupyter_contrib_nbextensions
