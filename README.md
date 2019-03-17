@@ -1,6 +1,6 @@
 # Engy-4350 Nuclear Reactor Engineering
 [![Home](https://img.shields.io/website-up-down-green-red/https/github.com/dpploy/engy-4350.svg?label=home&style=flat)](https://github.com/dpploy/engy-4350)
-[![Home](https://img.shields.io/github/repo-size/dpploy/engy-4350.svg?label=size&style=flat)](https://github.com/dpploy/engy-4350)
+[![Repo-Size](https://img.shields.io/github/repo-size/dpploy/engy-4350.svg?label=size&style=flat)](https://github.com/dpploy/engy-4350)
 [![Azure Notebooks](https://notebooks.azure.com/launch.svg)](https://notebooks.azure.com/dealmeidavf/projects/engy-4350)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dpploy/engy-4350/master)
 [![NBViewer](https://github.com/jupyter/design/blob/master/logos/Badges/nbviewer_badge.svg)](http://nbviewer.jupyter.org/github/dpploy/engy-4350/tree/master/notebooks)
