@@ -303,7 +303,6 @@ def read_arrhenius_experimental_data(filename):
             idx += 1
             
     return (r_cte, r_cte_units, n_pts, temp, k_cte)
-
 #*********************************************************************************
 def plot_arrhenius_experimental_data( temp, k_cte ):
     
@@ -340,7 +339,6 @@ def plot_arrhenius_experimental_data( temp, k_cte ):
     print('')
 
     return
-
 #*********************************************************************************
 def color_map( num_colors ):
 
