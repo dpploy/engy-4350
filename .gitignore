@@ -2,6 +2,7 @@
 *midterm*
 *solution*
 *mine*
+*.svg
 *.htm
 # Byte-compiled / optimized / DLL files
 __pycache__/
