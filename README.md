@@ -5,10 +5,10 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dpploy/engy-4350/master)
 [![NBViewer](https://github.com/jupyter/design/blob/master/logos/Badges/nbviewer_badge.svg)](http://nbviewer.jupyter.org/github/dpploy/engy-4350/tree/master/notebooks)
 
-    University of Massachusetts Lowell, Spring 2019
-    Dept. of Chemical Engineering
-    Prof. Valmor F. de Almeida (valmor_dealmeida@uml.edu)
-    
+   + [University of Massachusetts Lowell](https://www.uml.edu/), Spring 2019
+   + [Dept. of Chemical Engineering](https://www.uml.edu/Engineering/Chemical/)
+   + [Prof. Valmor F. de Almeida](https://www.uml.edu/Engineering/Chemical/faculty/de-Almeida-Valmor.aspx) (valmor_dealmeida@uml.edu)
+   
 ![](notebooks/images/point-reactor-hx.png)![](notebooks/images/point-reactor-response-3.png) 
 
 The goal of this [course](https://github.com/dpploy/engy-4350) is to present to undergraduate students of nuclear chemical engineering the elements of nuclear energy conversion to (electrical) work. This is done primarily in large scale power reactors by using nuclear heat. Although there are direct ways to convert nuclear energy into electricity, the focus of this course is on the prevalent mode of energy transfer using nuclear heat.
