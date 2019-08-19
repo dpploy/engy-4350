@@ -6,7 +6,7 @@
 [![NBViewer](https://github.com/jupyter/design/blob/master/logos/Badges/nbviewer_badge.svg)](http://nbviewer.jupyter.org/github/dpploy/engy-4350/tree/master/notebooks)
 
    + [University of Massachusetts Lowell](https://www.uml.edu/), Spring 2019
-   + [Dept. of Chemical Engineering](https://www.uml.edu/Engineering/Chemical/)
+   + [Dept. of Chemical Engineering](https://www.uml.edu/Engineering/Chemical/) (Nuclear Program)
    + [Prof. Valmor F. de Almeida](https://www.uml.edu/Engineering/Chemical/faculty/de-Almeida-Valmor.aspx) (valmor_dealmeida@uml.edu)
    
 ![](notebooks/images/point-reactor-hx.png)![](notebooks/images/point-reactor-response-3.png) 
