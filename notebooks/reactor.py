@@ -44,9 +44,8 @@ def alpha_tn_func(temp, params):
   k_infty = params['k_infty']
   T = temp
     
-  alpha_tn = -2 * (buckling **2)  * math.sqrt(m2) * (1 / k_infty) * 0.320886 * (1 / T)**0.75
-    
-    
+  alpha_tn = -2/100000 * (buckling **2)  * math.sqrt(m2) * (1 / k_infty) * 0.320886 * (1 / T)**0.75
+  
   return alpha_tn
   
 def rho_func( t, n_dens, temp, params ):
@@ -83,7 +82,7 @@ def rho_func( t, n_dens, temp, params ):
     
   rho_t = rho_0 + alpha_n * n_dens + alpha_tn * (temp - temp_ref)
     
-  #print(rho_t)
+  print("rho_t is ", rho_t)
   #print(n_dens)
         
   return rho_t
