@@ -33,21 +33,74 @@ def setup_initial_conditions(params):
     params['pressure_0'] = 1.013 # bar
     
     return
-  
-def alpha_tn_func(temp, params):
-  '''
-  Place holder for implementation
-  '''
-  import math
-  buckling = params['buckling']
-  m2 = params['m2']
-  k_infty = params['k_infty']
-  T = temp
+def derivativeHelper(temperature):
+    '''
+    function to help with the implementation of alpha_tn_function since the scipy derivative function only allows
+    one variable to be input to the function it works on.
+    '''
     
-  alpha_tn = -2/100000 * (buckling **2)  * math.sqrt(m2) * (1 / k_infty) * 0.320886 * (1 / T)**0.75
-  
+    import iapws.iapws97 as steam
+    
+    pressure = pressureCalc(temperature)
+    rho = 1/steam._Region1(temperature, pressure)['v']
+    return(rho)
+
+def alpha_tn_func(temp, params):
+  import math
+  import scipy.misc as diff
+  import scipy.constants as sc
+  import iapws.iapws97 as steam
+    
+  pressure = pressureCalc(temp)
+    
+  d_rho = diff.derivative(derivativeHelper, temp) # dRho/dTm
+  rho = 1 / steam._Region1(temp, pressure)['v'] # mass density, kg/m3
+    
+  Nm = ((rho * sc.kilo)/params['mod molar mass']) * sc.N_A * (sc.centi)**3 # number density of the moderator
+  d_Nm =  ((d_rho * sc.kilo)/params['mod molar mass']) * sc.N_A * (sc.centi)**3 #dNm/dTm
+    
+  mod_macro_a = params['mod micro a'] * Nm # macroscopic absorption cross section of the moderator
+  mod_macro_s = params['mod micro s'] * Nm # macroscopic scattering cross section of the moderator
+    
+  F = params['fuel macro a']/(params['fuel macro a'] + mod_macro_a) # thermal utilization, F
+  #dF/dTm
+  d_F = -1*(params['fuel macro a'] * params['mod micro a'] * d_Nm)/(params['fuel macro a'] + mod_macro_a)**2
+    
+  # Resonance escape integral, P
+  P = math.exp((-1 * params['n fuel'] * (params['fuel_volume']) * params['I'] * sc.zepto * sc.milli)/(mod_macro_s * params['coolant_volume']))
+  #dP/dTm
+  d_P = P * (-1 * params['n fuel'] * params['fuel_volume'] * sc.centi**3 * params['mod micro s'] * d_Nm)/(mod_macro_s * params['coolant_volume'] * sc.centi**3)**2
+    
+  Eth = 0.0862 * temp # convert temperature to energy in MeV
+  E1 = mod_macro_s/math.log(params['E0']/Eth) # neutron thermalization macroscopic cross section
+  Df = 1/(3 * mod_macro_s * (1 - params['mod mu0'])) # neutron diffusion coefficient
+  tau = Df/E1 # fermi age, tau
+    #dTau/dTm
+  d_tau = (((0.0862 * (Eth/params['E0'])) * 3 * Nm) - math.log(params['E0']/Eth) * (params['mod micro s'] * d_Nm))/((3 * Nm)**2 * (1 - params['mod mu0']))
+    
+  L = math.sqrt(1/(3 * mod_macro_s * mod_macro_a * (1 - params['mod mu0']))) # diffusion length L
+    # dL/dTm
+  d_L = 1/(2 * math.sqrt((-2 * d_Nm)/(3 * params['mod micro s'] * params['mod micro a'] * Nm**3 * (1 - params['mod mu0']))))
+    
+  # left term of the numerator of the moderator temperature feedback coefficient, alpha
+  left_1st_term = d_tau * (params['buckling']**2 + L**2 * params['buckling']**4) #holding L as constant
+  left_2nd_term = d_L * (2 * L * params['buckling']**2 + 2 * L * tau * params['buckling']**4) # holding tau as constant
+  left_term = (P * F) * (left_1st_term + left_2nd_term) # combining with P and F held as constant
+    
+  # right term of the numerator of the moderator temperature feedback coefficient, alpha
+  right_1st_term = (-1) * (1 + ((tau + L**2) * params['buckling']**2) + tau * L**2 * params['buckling']**4) # num as const
+  right_2nd_term = F * d_P # holding thermal utilization as constant
+  right_3rd_term = P * d_F # holding resonance escpae as constant
+  right_term = right_1st_term * (right_2nd_term + right_3rd_term) # combining all three terms together
+    
+  # numerator and denominator
+  numerator = left_term + right_term
+  denominator = params['eta'] * params['epsilon'] * (F * P)**2
+  alpha_tn = numerator/denominator
+    
+  alpha_tn = alpha_tn * (sc.milli * sc.zepto * 0.000000001) # adjust for barns
   return alpha_tn
-  
+
 def rho_func( t, n_dens, temp, params ):
   '''
   Reactivity function.  
@@ -81,10 +134,6 @@ def rho_func( t, n_dens, temp, params ):
       rho_0 = 0
     
   rho_t = rho_0 + alpha_n * n_dens + alpha_tn * (temp - temp_ref)
-    
-  print("rho_t is ", rho_t)
-  #print(n_dens)
-        
   return rho_t
   
 def q_source( t, params ):
