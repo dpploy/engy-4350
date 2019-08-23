@@ -513,7 +513,7 @@ def derivative_helper(temperature):
     return(rho)
 
 
-# In[32]:
+# In[5]:
 
 
 '''Reactivity coefficient function'''
@@ -571,7 +571,7 @@ def alpha_tn_func(temp, params):
     denominator = params['eta'] * params['epsilon'] * (F * P)**2
     alpha_tn = numerator/denominator
     
-    alpha_tn = alpha_tn * (sc.milli * sc.zepto * sc.milli) # adjust for barns
+    alpha_tn = alpha_tn * (sc.milli * sc.zepto * sc.milli * sc.milli) # adjust for barns
     return alpha_tn
 
 
@@ -609,21 +609,24 @@ def rho_func( t, n_dens, temp, params ):
     
     alpha_tn = alpha_tn_func(temp, params)
 
-    if t > params['malfunction start'] and t < params['malfunction end']:
-        rho_t = rho_0 + alpha_n * n_dens + alpha_tn * (temp - temp_ref)
-    if t > params['shutdown time']:
-        rho_0 = 0
-        alpha_n = -1 * alpha_n
-        rho_t = rho_0 + alpha_n * n_dens + alpha_tn * (temp - temp_ref)
+    if t > params['malfunction start'] and t < params['malfunction end']: # reg rod held in position; only mod temp reactivity varies with time during malfunction
+        alpha_n = params['alpha_n_malfunction']
+        rho_t = rho_0 + alpha_n + alpha_tn * (temp - temp_ref)
         
-    else: #controlled startup w/ blade
+    elif t > params['shutdown time']: # effectively the inverse of startup; gradually reduce reactivity and neutron density.
+        rho_0 = -1 * rho_0
+        alpha_n = alpha_tn * (temp - temp_ref)
+        rho_t = rho_0
+        
+    else: #controlled startup w/ blade; gradually increase neutron density to SS value.
         rho_current = (1 - n_dens) * rho_0
-        alpha_n = rho_current - rho_0 + alpha_tn * (temp - temp_ref)
+        alpha_n = rho_current - rho_0 - alpha_tn * (temp - temp_ref)
         rho_t = rho_current
+        params['alpha_n_malfunction'] = alpha_n
     #print(rho_t)
     #print(n_dens)
         
-    return (rho_t, alpha_n, alpha_tn)
+    return (rho_t, alpha_n, alpha_tn * (temp - temp_ref))
 
 
 # In[7]:
@@ -902,7 +905,7 @@ def run_point_reactor( f_vec, params ):
     return u_vec_history
 
 
-# In[14]:
+# In[51]:
 
 
 '''Plotting function definition'''
@@ -914,7 +917,7 @@ def plot_results( u_vec_history, normalize=True, semi_log=False, markers=False, 
         
     import matplotlib.pyplot as plt
     
-    fig, ax1 = plt.subplots(1, figsize=(14, 6))
+    fig, ax1 = plt.subplots(1, figsize=(20, 8))
 
     if precursors == True:
         
@@ -1188,10 +1191,10 @@ def quantities1(u_vec_history, params, time_stamps):
 
         q3prime = abs(nuclear_pwr_dens_func(time, temp_f, n_dens, params)) # calculate q3prime at this point in time; watts/m3
         q3prime = q3prime * params['fuel_volume'] * 1.01 #convert q''' to 
-        q3_list.append(q3prime/sc.giga) # convert watts/m3 to gWatts/m3
+        q3_list.append(q3prime/sc.giga/175) # convert watts/m3 to gWatts/m3
         
         heat_removed = -1 * heat_sink_rate("false", temp_f, temp_c, params) # calculate the heat removed at this point in time
-        removed_heat_list.append(heat_removed/sc.giga) # convert gwatts/m3 to kWatts/m3
+        removed_heat_list.append(heat_removed/sc.giga/175) # convert gwatts/m3 to kWatts/m3
         
     #data['time [s]'] = time_stamps
     data["q''' [gW/m3]"] =  q3_list 
@@ -1238,12 +1241,13 @@ def quantities2(u_vec_history, params, time_stamps):
     return(quantities)
 
 
-# In[33]:
+# In[21]:
 
 
 def quantities3(u_vec_history, params, time_stamps):
     #net reactivity and reactivity coefficient printing
-    data = dict()
+    rho_data = dict() #store reactivity datas here
+    reg_rod_data = dict() # store reg rod movements here
     import pandas as pd
     import scipy.constants as sc
     
@@ -1254,15 +1258,17 @@ def quantities3(u_vec_history, params, time_stamps):
     for(time, n_dens, temp_c) in zip(time_stamps, u_vec_history[:,0], u_vec_history[:,-1]):
         reactivities = rho_func(time, n_dens, temp_c, params)
         net_rho.append(reactivities[0])
-        reg_rod_rho.append(reactivities[1])
+        reg_rod_position = reactivities[1] / params['reg_rod_worth'] # cm
+        reg_rod_rho.append(reg_rod_position)
         mod_temp_rho.append(reactivities[2])
     
-    data['net reactivity [$]'] = net_rho
-    #data['regulating rod reactivity [$]'] = reg_rod_rho
-    data['moderator temperature reactivity[$]'] = mod_temp_rho
+    rho_data['net reactivity [$]'] = net_rho
+    reg_rod_data['regulating rod position [cm], worth = 1.5e-3 pcm'] = reg_rod_rho
+    rho_data['moderator temperature reactivity[$]'] = mod_temp_rho
     
-    quantities = pd.DataFrame(data)
-    return(quantities)
+    rhos = pd.DataFrame(rho_data)
+    regs = pd.DataFrame(reg_rod_data)
+    return(rhos, regs)
 
 
 # In[22]:
@@ -1272,7 +1278,7 @@ def tmp():
     time_stamps = params['time_stamps']
     tau = params['tau_fake']
     import matplotlib.pyplot as plt    
-    fig, ax1 = plt.subplots(1, figsize=(16, 6))
+    fig, ax1 = plt.subplots(1, figsize=(22, 8))
     ax1.plot(time_stamps/tau,u_vec_history[:,-2],'b-',label='$T_f=$ ' )
 
     ax1.set_xlabel(r'Time [s] ($\tau=$%4.1f s)'%tau,fontsize=16)
@@ -1325,6 +1331,8 @@ params['eta'] = 1.03 # fast fission factor
 params['epsilon'] = 2.05 # neutron multiplecation factor
 params['mod molar mass'] = 18 # g/mol
 
+params['reg_rod_worth'] = 1.5e-4 # pcm
+
 params['n_dens_ss_operation'] = 1 #1.963e13/2200 * 1e4 #  #neutrons/m^2
 
 #Delayed neutron emission
@@ -1373,12 +1381,11 @@ params['shutdown temp reached'] = False
 '''Setup up initial conditions'''
 
 import numpy as np
+import scipy.constants as sc
 
-params['malfunction start'] = 1300
-params['malfunction end'] = 0
-params['breakage start'] = 1300
-params['breakage end'] = 0
-params['shutdown time'] = 1300
+params['malfunction start'] = 50 * sc.minute
+params['malfunction end'] = 50 * sc.minute
+params['shutdown time'] = 50 * sc.minute
 
 gen_time = params['gen_time'] # retrieve neutron generation time
 params['q_0'] = 1
@@ -1388,14 +1395,15 @@ params['n_ss'] = 0 # neutronless steady state before start up
 rho_0_over_beta = 0.25 # $
 beta = params['beta']
 
-params['alpha_n'] = -1 * -0.3261809701164875 # control rod reactivity worth; enough to cancel out the negative 
+params['alpha_n'] = 0 # control rod reactivity worth; enough to cancel out the negative 
 
-print((params['beta'] * rho_0_over_beta) + (alpha_tn_func(528.2240712403485, params) * (528.2240712403485 - 273.15)))
 params['reactivity'] = rho_0_over_beta * beta # "rho/beta = 10 cents"
 
 params['temp_0'] = params['temp_o']
 
 params['tau_fake'] = 2 # s
+params['malfunction subcooling'] = 0.55
+params['alpha_n_malfunction'] = 0
 
 # setup remaining initial conditions
 setup_initial_conditions(params)
@@ -1404,16 +1412,10 @@ setup_initial_conditions(params)
 # In[25]:
 
 
-alpha_tn_func(528.2240712403485, params)
-
-
-# In[26]:
-
-
 '''Evolve the point-reactor'''
 import scipy.constants as const
 
-time_final    = 20 * const.minute 
+time_final    = 40 * const.minute 
 n_time_stamps = 10000 # number of solution values in time
 
 params['time_final']    = time_final
@@ -1425,7 +1427,7 @@ u_vec_history = run_point_reactor( f_vec, params )
 print("done")
 
 
-# In[27]:
+# In[52]:
 
 
 plot_results(u_vec_history, params)
@@ -1433,52 +1435,67 @@ plot_results(u_vec_history, params)
 
 # Neutron and delayed emitter concentrations follow the predicted S-shape pattern, with initial quick growth followed by a horizontal asymptope around steady state.
 
-# In[34]:
+# In[63]:
 
 
 import matplotlib.pyplot as plt
 heat_data = quantities1(u_vec_history, params, params['time_stamps'])
-plt.plot(params['time_stamps'], heat_data["q''' [gW/m3]"])
-plot = heat_data.plot(x=None, y=None, kind='line', ax=None, subplots=False, sharex=None, sharey=False, layout=None, figsize=(15,10),
-               use_index=True, title=None, grid=None, legend=True, style=None, logx=False, logy=False, loglog=False, 
-               xticks=None, yticks=None, xlim=None, ylim=None, rot=None, fontsize=None, colormap=None, table=False, 
-               yerr=None, xerr=None, secondary_y=False, sort_columns=False)
-plot.set_xlabel("Time(s) (Tau = 2s)")
-plot.set_ylabel("energy (gW/m3)")
-plot.set_title("Heat Removed and Q''' vs time during reactor startup")
+plt.figure(figsize=(22, 8))
+plt.plot(params['time_stamps'], heat_data["q''' [gW/m3]"], params['time_stamps'], heat_data["heat removed [gW/m3]"])
 plt.grid()
-plt.rcParams['figure.figsize'] = [8,6]
-plt.show()
+plt.rc('font', size=12)
+plt.xlabel('Time [tau = 2s]')
+plt.ylabel('Power [gW]')
+plt.title('Heat Data')
+plt.legend()
 
 
-# In[35]:
+
+# In[70]:
 
 
-heat_data = quantities3(u_vec_history, params, params['time_stamps'])
-heat_data.plot(x=None, y=None, kind='line', ax=None, subplots=False, sharex=None, sharey=False, layout=None, figsize=(15,10),
-               use_index=True, title=None, grid=None, legend=True, style=None, logx=False, logy=False, loglog=False, 
-               xticks=None, yticks=None, xlim=None, ylim=None, rot=None, fontsize=None, colormap=None, table=False, 
-               yerr=None, xerr=None, secondary_y=False, sort_columns=False)
+quants = quantities3(u_vec_history, params, params['time_stamps'])
+plt.figure(figsize=(22, 8))
+plt.plot(params['time_stamps'], quants[0])
+plt.grid()
+plt.rc('font', size=12)
+plt.xlabel('Time [s]')
+plt.ylabel('Reactivity [$]')
+plt.title('Reactivity Data')
+plt.legend(['Total Reactivity','Moderator temperature Reactivity'])
+
+
+# In[71]:
+
+
+plt.figure(figsize=(22, 8))
+plt.plot(params['time_stamps'], quants[1])
+plt.grid()
+plt.rc('font', size=12)
+plt.xlabel('Time [s]')
+plt.ylabel('Position [cm]')
+plt.title('Regulating Rod Position')
 
 
 # Q''' and heat removed increase fairly quickly before reaching steady state in about 5-10 minutes. There is an initial spike in and then loss of heat removed as the neutron source is inserted and then quickly removed from the system, with heat removed staying mostly constant over this period of time.
 
-# In[ ]:
+# In[73]:
 
 
-work_data1 = quantities2(u_vec_history, params, params['time_stamps'])
-plot = work_data1.plot(x=None, y=None, kind='line', ax=None, subplots=False, sharex=None, sharey=False, layout=None, figsize=(15,10),
-               use_index=True, title=None, grid=None, legend=True, style=None, logx=False, logy=False, loglog=False, 
-               xticks=None, yticks=None, xlim=None, ylim=None, rot=None, fontsize=None, colormap=None, table=False, 
-               yerr=None, xerr=None, secondary_y=False, sort_columns=False)
-plot.set_xlabel("Time(s) (Tau = 2s)")
-plot.set_ylabel("Power (gW)")
-plot.set_title("Turbine, Condenser and Net Power vs Time for reactor startup")
+work_data = quantities2(u_vec_history, params, params['time_stamps'])
+plt.figure(figsize=(22, 8))
+plt.plot(params['time_stamps'], work_data)
+plt.grid()
+plt.rc('font', size=12)
+plt.xlabel('Time [tau = 2s]')
+plt.ylabel('Power [gW]')
+plt.title('Turbine, Condenser, and Net Power vs Time For Reactor Startup')
+plt.legend(['Turbine Power','Condenser Power', 'Net Power'])
 
 
 # Condenser work reaches its maximum at the beginning of startup and then decays over time, while turbine work starts at zero until it climbs to its maximum near the beginning of steady state operation, corresponding with turbine work becoming larger than condenser work with net work becoming positive around 0.5 gW. This change in work done corresponds with the second temperature jump after neutron source insertion and removal.
 
-# In[ ]:
+# In[74]:
 
 
 tmp()
