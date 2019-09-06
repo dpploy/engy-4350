@@ -1324,7 +1324,7 @@ def tmp():
     fig, ax1 = plt.subplots(1, figsize=(22, 8))
     ax1.plot(time_stamps/3600,u_vec_history[:,-2],'b-',label='$T_f=$ ' )
 
-    ax1.set_xlabel(r'Time [s] ', fontsize=16)
+    ax1.set_xlabel(r'Time [h] ', fontsize=16)
     ax1.set_ylabel(r'$T_f$ [K]',fontsize=16,color='blue')
     ax1.tick_params(axis='y', labelcolor='blue', labelsize=14)
     ax1.tick_params(axis='x', labelsize=14)
@@ -1427,7 +1427,7 @@ import scipy.constants as sc
 
 params['malfunction start'] = 9999 * sc.hour 
 params['malfunction end'] = 9999 * sc.hour
-params['shutdown time'] = 9999 * sc.hour
+params['shutdown time'] = 4 * sc.hour
 
 gen_time = params['gen_time'] # retrieve neutron generation time
 params['q_0'] = 0.1
@@ -1457,8 +1457,8 @@ setup_initial_conditions(params)
 '''Evolve the point-reactor'''
 import scipy.constants as const
 
-time_final    = 4 * const.hour
-n_time_stamps = 200 # number of solution values in time
+time_final    = 12 * const.hour
+n_time_stamps = 1000 # number of solution values in time
 
 params['time_final']    = time_final
 params['n_time_stamps'] = n_time_stamps
