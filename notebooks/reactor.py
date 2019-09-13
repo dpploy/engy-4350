@@ -123,78 +123,6 @@ get_ipython().system(u'pip install iapws')
 # \end{equation*}
 # 
 
-# In[2]:
-
-
-'''Parameters'''
-import math
-import scipy.constants as sc
-import iapws.iapws97 as steam_table
-params = dict()
-
-#Data pertaining to one-group energy neutron balance
-params['gen_time']     = 1.0e-4  # s
-params['beta']         = 6.5e-3  # 
-params['k_infty']      = 1.34477
-params['buckling'] = (math.pi/2.375)**2.0 + (2.405/4.1)**2.0 # geometric buckling; B = (pi/R)^2 + (2.405/H)^2
-params['q_0'] = 0
-params['fuel macro a'] = 1.34226126162 #fuel macroscopic absorption cross section, cm^-1
-params['mod micro a'] = 0.332 * sc.zepto * sc.milli #moderator microscopic absorption cross section, cm^2
-params['n fuel'] = 1.9577906e+21 #number density of the fuel, atoms/cm^3
-params['I'] = 40.9870483 #resonance integral, I (dimensionless)
-params['mod micro s'] = 20 * sc.zepto * sc.milli # moderator microscopic scattering cross section, cm^2
-params['xi'] = 1 # average logarithmic energy decrement for light water
-params['E0'] = 2 * sc.mega # energy of a neutron produced by fissioning, in electron volts
-params['mod mu0'] = 0.71 # migration and diffusion area constants
-params['eta'] = 1.03 # fast fission factor
-params['epsilon'] = 2.05 # neutron multiplecation factor
-
-params['n_dens_ss_operation'] = 1 #1.963e13/2200 * 1e4 #  #neutrons/m^2
-
-params['alpha_n'] = -1.5e-3 # control rod reactivity worth
-
-#Delayed neutron emission
-params['species_decay']     = [0.0124, 0.0305, 0.111, 0.301, 1.14, 3.01] # 1/sec
-params['species_rel_yield'] = [0.033, 0.219, 0.196, 0.395, 0.115, 0.042] 
-
-#Data pertaining to two-temperature heat balances
-params['fis_energy']           = 180 * 1.602e-13 # J/fission 
-params['enrich']               = 4.3/100.
-params['fuel_mat_mass_dens']   = 10.5 # g/cc
-#params['moderator_fuel_ratio'] = 387 # atomic number concentration ratio
-params['sigma_f_o']            = 586.2 * 100 * 1e-30 # m2
-params['temp_o']               = 20 + 273.15 # K
-params['thermal_neutron_velo'] = 2200 # m/s
-
-params['fis_nuclide_num_dens_fake'] = 9.84e26 # (fissile nuclei)/m3
-
-params['q_c'] = 303 # volumetric flow rate
-
-params['fuel_dens']   = 10500 # kg/m3
-params['cp_fuel']     = 300 # J/(kg K)
-params['fuel_volume'] = 15.0157429 # m3
-
-params['steam flowrate'] = 1820 # kg/s
-params['coolant_dens']   = 600 #  kg/m3
-params['cp_coolant']     =  4000# J/(mol K) - > J/(kg K)
-params['coolant_volume'] = 3000 # m3
-
-params['ht_coeff'] = 30000 # W/K
-
-params['turbine efficiency'] = 0.8 
-params['condenser efficiency'] = 0.8
-params['pump efficiency'] = 0.8
-
-params['fis_prod_beta_energy_rate']  = 1.26 * 1.602e-13 # J/(fission sec) 1.26 t^-1.2 (t in seconds)
-params['fis_prod_alpha_energy_rate'] = 1.40 * 1.602e-13 # J/(fission sec) 1.40 t^-1.2 (t in seconds)
-# % subcooling based on the % subcooling that exists at steady state
-params['% subcooling'] =  (1 -(steam_table._Region4(7, 0)["h"]  - steam_table._Region1(493.15, 7)["h"])/(steam_table._Region4(7,0)["h"]))
-
-params['shutdown temp reached'] = False
-
-
-
-
 # ## One-Group Energy  Neutron Balance<a></a>
 # 
 # The space-invariant neutron balance for the point-reactor model is
@@ -261,7 +189,7 @@ params['shutdown temp reached'] = False
 # c_{i_\text{ss}}  &amp;= \frac{\beta_i}{\lambda_i\,\ell}\, n_\text{ss}   \ \ \ \ \forall \ \ \ \ i=1,\ldots,6 .
 # \end{align*}
 
-# In[3]:
+# In[2]:
 
 
 '''Setup function for delayed neutron species concentrations at steady state'''
@@ -366,7 +294,7 @@ def setup_initial_conditions(params):
 # The moderator temperature reactivity coefficient is the major contributor to the power coefficient in a boiling water reactor. It can be calculated by the following equation:
 # 
 # \begin{equation*}
-# \alpha_\text{m} = \frac{1}{K}\frac{dK}{dT_\text{m}}\
+# \alpha_\text{m} = \frac{dK}{dT_\text{m}}\frac{1}{K}\
 # \end{equation*}
 # 
 # Where $\alpha_\text{m}$ is the moderator temperature feedback coefficient, K is the neutron multiplecation factor for a finite medium, and $T_\text{m}$ is the temperature of the moderator. K is calculated as follows:
@@ -378,7 +306,7 @@ def setup_initial_conditions(params):
 # Plugging this in to the original moderator temperature reactivity coefficient equation leaves the following differential equation:
 # 
 # \begin{equation*}
-# \alpha_\text{m} = \frac{1 + (\tau + L^2)B^2 + \tau L^2 B^4}{\eta \epsilon P F}\frac{d}{dT_\text{m}}\
+# \alpha_\text{m} = \frac{d}{dT_\text{m}}\frac{1 + (\tau + L^2)B^2 + \tau L^2 B^4}{\eta \epsilon P F}\
 # \end{equation*}
 # 
 # With $\tau$ being the fermi age or slowing down area, $L$ being the neutron diffusion length, $B$ being buckling, $\eta$ being neutron yield, $\epsilon$ being fast fission factor, $P$ being resonance escape probability and $F$ being thermal utilization. Only $\tau$, $P$ and $F$ vary significantly with moderator temperature, with $L$ and $B$ being assumed constants over the range of temperatures.
@@ -424,13 +352,13 @@ def setup_initial_conditions(params):
 # Next, the diffusion area in the moderator before absorption, $L^2$, may be evaluated. It can be calculated through the following relation:
 # 
 # \begin{equation*}
-# L^2 = \frac{1}{3 \Sigma_\text{s} \Sigma_\text{a} (1 - \mu_\text{0}}
+# L^2 = \frac{1}{3 \Sigma_\text{s} \Sigma_\text{a} (1 - \mu_\text{0})}
 # \end{equation*}
 # 
 # And therefore:
 # 
 # \begin{equation*}
-# L = \sqrt{\frac{1}{3 \Sigma_\text{s} \Sigma_\text{a} (1 - \mu_\text{0}}}
+# L = \sqrt{\frac{1}{3 \Sigma_\text{s} \Sigma_\text{a} (1 - \mu_\text{0})}}
 # \end{equation*}
 # 
 # Note that L is referred to as the diffsion length whereas L^2 is the diffusion area.
@@ -468,7 +396,7 @@ def setup_initial_conditions(params):
 # With $\Sigma_\text{aF}$ being the macroscopic absorption cross section of the fuel and $\Sigma_\text{aM}$ being the macroscopic absorption cross section of the moderator. As only the macroscopic absorption cross section of the moderator will vary with the temperature of the moderator, the derivative of thermal utilization with respect to the temperature of the moderator can be written as follows:
 # 
 # \begin{equation*}
-# \frac{dF}{dT_\text{m}} = \frac{-(\Sigma_\text{aF})(\sigma_\text{aM} \frac{dN_\text{m}}{dT_\text{m}}}{(\Sigma_\text{aF} + \Sigma_\text{aM})^2}
+# \frac{dF}{dT_\text{m}} = \frac{-(\Sigma_\text{aF})(\sigma_\text{aM} \frac{dN_\text{m}}{dT_\text{m}})}{(\Sigma_\text{aF} + \Sigma_\text{aM})^2}
 # \end{equation*}
 # 
 # The final preliminary differential equation is the one that must be developed for the differential of the moderator number density with respect to the temperature of the moderator. The change in number density of the moderator with respect to temperature will be proportional to the change in the mass density of the moderator with respect to temperature, by the molar mass of the moderator (in this case, 18 g/mol) and avogadro's number. The derivative of the mass density with respect to the temperature of the moderator of water is a function of a forty term polynomial used by the IAPWS 97 standards to approximate the behavior of water at different temperatures and pressures, that is:
@@ -486,7 +414,7 @@ def setup_initial_conditions(params):
 # Now that all previous relationships have been developed, the moderator temperature feedback coefficient can be calculated. Recall the original equation for the moderator temperature feedback coefficient:
 # 
 # \begin{equation*}
-# \alpha_\text{m} = \frac{1 + (\tau + L^2)B^2 + \tau L^2 B^4}{\eta \epsilon P F}\frac{d}{dT_\text{m}}\
+# \alpha_\text{m} = \frac{d}{dT_\text{m}}\frac{1 + (\tau + L^2)B^2 + \tau L^2 B^4}{\eta \epsilon P F}\
 # \end{equation*}
 # 
 # Taking the derivatives with respect to moderator temperature yields the following differential:
@@ -497,7 +425,7 @@ def setup_initial_conditions(params):
 # 
 # 
 
-# In[4]:
+# In[3]:
 
 
 def derivative_helper(temperature):
@@ -513,7 +441,7 @@ def derivative_helper(temperature):
     return(rho)
 
 
-# In[5]:
+# In[4]:
 
 
 '''Reactivity coefficient function'''
@@ -575,7 +503,7 @@ def alpha_tn_func(temp, params):
     return alpha_tn
 
 
-# In[6]:
+# In[5]:
 
 
 '''Reactivity function'''
@@ -635,13 +563,12 @@ def rho_func( t, n_dens, temp, params ):
         rho_t = rho_current
         params['alpha_n_malfunction'] = alpha_n
         
-    #print(rho_t)
     #print(n_dens)
-        
+    
     return (rho_t, alpha_n, alpha_tn * (temp - temp_ref))
 
 
-# In[7]:
+# In[6]:
 
 
 '''Source function'''
@@ -684,7 +611,7 @@ def q_source( t, params ):
 # \overline{\sigma}_\text{f}(T) = \frac{\sqrt{\pi}}{2}\,\sigma_\text{fo}\,\sqrt{\frac{T_\text{(o)}}{T}}
 # \end{equation*}
 
-# In[8]:
+# In[7]:
 
 
 '''Effective microscopic fission cross section'''
@@ -706,7 +633,7 @@ def sigma_fis_func( temp, params ):
 # q^{'''}(t) = G_f\,\overline{\sigma}_\text{f}(T)\,N_\text{fn} \,\varphi(t) .
 # \end{equation*}
 
-# In[9]:
+# In[8]:
 
 
 '''Nuclear power density function'''
@@ -727,7 +654,7 @@ def nuclear_pwr_dens_func( time, temp, n_dens, params ):
     
     v_o = params['thermal_neutron_velo'] # m/s
     
-    neutron_flux = n_dens * 1e15 * v_o
+    neutron_flux = n_dens * 4.5e14 * v_o
     
      #reaction rate density
     rxn_rate_dens = Sigma_fis * neutron_flux
@@ -747,7 +674,7 @@ def nuclear_pwr_dens_func( time, temp, n_dens, params ):
 # {\dot{Q}_\text{f}} = -UA\bigl(T_f-T_c\bigr). 
 # \end{equation*}
 
-# In[10]:
+# In[9]:
 
 
 '''Cooling heat rate'''
@@ -761,35 +688,14 @@ def heat_sink_rate( time, temp_f, temp_c, params):
     return q_f
 
 
-# Pressure calculations follow the ideal gas law:
-# 
-# \begin{equation*}
-# P = 0.1\,\frac{nRT}{V}\
-# \end{equation*}
-# 
-# With n = 101111 moles, R = 8.314 * 10$^{-5}$ m$^3$ bar K$^{−1}$ mol$^{−1}$ , T as the temperature in kelvin, V as the volume of 150 m$^3$ and 0.1 being the conversion factor from bar to mPa. The calculation used returns pressure in units of mPa.
-
-# In[11]:
-
-
-def pressure_calc(temperature):
-    # calculates the pressure exerted by steam in the reactor at any temperature T. Returns units of mPa
-    import scipy.constants as const
-    n = 101111 # moles
-    V = 150 # m^3
-    
-    pressure = n * const.R * temperature / V # PV = NRT
-    
-    #print(pressure)
-    
-    return pressure/const.mega
-
-
-# In[12]:
+# In[10]:
 
 
 def f_vec(time, u_vec, params):
-    assert np.all(u_vec >= 0.0)
+    num_negatives = u_vec[u_vec < 0]
+    if num_negatives.any() < 0:
+        assert np.max(abs(u_vec[u_vec < 0])) <= 1e-8, 'u_vec = %r'%u_vec
+    #assert np.all(u_vec >= 0.0), 'u_vec = %r'%u_vec
     
     q_source_t = q_source(time, params)
     
@@ -853,7 +759,7 @@ def f_vec(time, u_vec, params):
     
     # subcooled liquid
     turbine_out = turbine(time, temp_c,  params)[0] #run the turbine, take the runoff and pass to condenser
-    condenser_out = condenser(time, turbine_out, temp_c, params)[0] #run the condenser, pass runoff to the pump
+    condenser_out = condenser(time, turbine_out, temp_c, params) #run the condenser, pass runoff to the pump
     pump_out = pump(time, condenser_out, temp_c, params) #run the pump, runoff returns to reactor as temp_in
     #print("time is ", time, "and inlet temperature is", temp_in, "\n")
     
@@ -871,7 +777,7 @@ def f_vec(time, u_vec, params):
     return f_tmp
 
 
-# In[13]:
+# In[11]:
 
 
 '''Create the point-reactor run function'''
@@ -907,7 +813,7 @@ def run_point_reactor( f_vec, params ):
             
     (u_vec_history, info_dict) = odeint( f_vec, u_vec_0, time_stamps,
                                          args=( params, ),
-                                         rtol=1e-4, atol=1e-8, mxstep=max_n_steps_per_time_step,
+                                         rtol=1e-4, atol=[1e-8, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-3, 1e-3], mxstep=max_n_steps_per_time_step,
                                          full_output=1, tfirst=True )
     #print(n_dens)
     #print(u_vec)
@@ -919,7 +825,7 @@ def run_point_reactor( f_vec, params ):
     return u_vec_history
 
 
-# In[14]:
+# In[12]:
 
 
 '''Plotting function definition'''
@@ -989,7 +895,7 @@ def plot_results( u_vec_history, normalize=True, semi_log=False, markers=False, 
     print('')
 
 
-# In[15]:
+# In[13]:
 
 
 '''Utility function to peak at results table'''
@@ -1085,7 +991,7 @@ def peek(time,data, head=500, tail=100):
 # 
 # 
 
-# In[16]:
+# In[14]:
 
 
 def turbine (time, temp_in, params):
@@ -1139,22 +1045,17 @@ def turbine (time, temp_in, params):
 # subcooling = (1 -\frac{H(T_{saturated}, 7 mPa, x=0) - H(220 C, 7 mPa}{H(T_{saturated}, 7 mPa, x=0})
 # \end{equation*}
 
-# In[17]:
+# In[15]:
 
 
 def condenser(time, temp_in, temp_c, params):
-    
-    if time < 10 * const.minute:
-        t_runoff = temp_c
-        work_done = 0
-        return(t_runoff, temp_c)
     
     if time > params['malfunction start'] and time < params['malfunction end']: # reduce subcooling by 33%
         t_runoff = temp_c - 4
         
     elif time > params['shutdown time']:
         
-        t_runoff = temp_c - 6
+        t_runoff = temp_c - 4
         
         if t_runoff < 275.15:
             t_runoff = 275.15
@@ -1162,50 +1063,22 @@ def condenser(time, temp_in, temp_c, params):
         if temp_c < 275.15:
             temp_c = 275.15
             
-        pressure = steam_table._PSat_T(temp_c) # current reactor operating pressure that the runoff must be compressed to
-    
-        h_out = steam_table._Region1(t_runoff, pressure)['h'] # enthalpy leaving the condenser
-        
-        h_turbine = steam_table._Region1(temp_in, 0.00075)["h"] #enthalpy of the liquid leaving the turbine at 0.75 kPa
-        
-        work_done = h_out - h_turbine #work done by the condenser per kg steam effluent
-        work_done = work_done * params['steam flowrate'] / params['condenser efficiency']
-        
-        #if work_done < 0: # condenser shutdown condition
-            #work_done = 0
-            #t_runoff = temp_c
-            
-        return(t_runoff, work_done)
+        return t_runoff
     
     elif temp_c < 273.15:
         t_runoff = temp_c
-        work_done = 0
-        return(t_runoff, work_done)
-    
-    elif temp_in > temp_c:
-        t_runoff = temp_c - 6
-        work_done = 0
-        return(t_runoff, work_done)
+        return t_runoff
     
     else:
-        t_runoff = temp_c - 6 # reduce runoff temperature by 6 degrees celsius
+        t_runoff = temp_c - (abs(temp_c - 293.15)/350 * 6) # reduce runoff temperature by 6 degrees celsius
     
-    pressure = steam_table._PSat_T(temp_c) # current reactor operating pressure that the runoff must be compressed to
-    
-    h_out = steam_table._Region1(t_runoff, pressure)['h'] # enthalpy leaving the condenser
-        
-    h_turbine = steam_table._Region1(temp_in, 0.00075)["h"] #enthalpy of the liquid leaving the turbine at 0.75 kPa
-        
-    work_done = h_out - h_turbine #work done by the condenser per kg steam effluent
-    work_done = work_done * params['steam flowrate'] / params['condenser efficiency']
-    
-    return (t_runoff, work_done)
+    return t_runoff
 
 
 # # The Pump
 # The pump takes the subcooled liquid runoff from the condenser and pumps it back into the bottom of the reactor at the current operating pressure of the reactor. The head required is affected by the viscocity of the liquid it pumps into the reactor, which changes slightly with temperature and pressure.
 
-# In[18]:
+# In[16]:
 
 
 def pump(time, temp_effluent, temp_c, params):
@@ -1213,7 +1086,7 @@ def pump(time, temp_effluent, temp_c, params):
     return temp_effluent
 
 
-# In[19]:
+# In[17]:
 
 
 def quantities1(u_vec_history, params, time_stamps):
@@ -1241,7 +1114,7 @@ def quantities1(u_vec_history, params, time_stamps):
     return(quantities)
 
 
-# In[20]:
+# In[18]:
 
 
 def quantities2(u_vec_history, params, time_stamps):
@@ -1251,8 +1124,7 @@ def quantities2(u_vec_history, params, time_stamps):
     import scipy.constants as sc
     
     twork = list() #turbine work
-    cwork = list() #condenser work
-    nwork = list() #net total usable work the reactor and BOP produce
+    #nwork = list() #net total usable work the reactor and BOP produce
     #pwork = list() # pump work
     
     for (time, n_dens, temp_f, temp_c) in zip(time_stamps, u_vec_history[:,0], u_vec_history[:,-2], u_vec_history[:,-1]):
@@ -1264,27 +1136,16 @@ def quantities2(u_vec_history, params, time_stamps):
         turbwork = turbwork / sc.giga
         twork.append(turbwork)
         
-        
-        cond = condenser(time, turb[0], temp_c, params)
-        condwork = cond[1]/sc.mega
-        if condwork < 0:
-            condwork = 0
-        cwork.append(condwork)
-        
-        net_work = turbwork - condwork # Wnet = Ws - Wcond
-        nwork.append(net_work)
-        
         #pwork.append(pump_work[time])
         
     data["turbine work [GW]"] = twork
-    data["condenser work [GW]"] = cwork
-    data["net work [GW]"] = nwork
+    #data["net work [GW]"] = nwork
     
     quantities = pd.DataFrame( data )
     return(quantities)
 
 
-# In[21]:
+# In[19]:
 
 
 def quantities3(u_vec_history, params, time_stamps):
@@ -1314,7 +1175,7 @@ def quantities3(u_vec_history, params, time_stamps):
     return(rhos, regs)
 
 
-# In[22]:
+# In[20]:
 
 
 def tmp():
@@ -1347,7 +1208,7 @@ def tmp():
 # # Reactor Startup From Neutronless Steady State
 # The reactor begins at t = 0 with a neutron concentration of 0. After an external neutron source $q_\text{0}$ is inserted, neutron and delayed emitter concentrations rise until steady state is reached.
 
-# In[23]:
+# In[21]:
 
 
 # '''Parameters'''
@@ -1396,15 +1257,15 @@ params['fis_nuclide_num_dens_fake'] = 9.84e26 # (fissile nuclei)/m3
 params['q_c'] = 303 # volumetric flow rate
 
 params['fuel_dens']   = 10500 # kg/m3
-params['cp_fuel']     = 300 # J/(kg K)
-params['fuel_volume'] = 15.0157429 # m3
+params['cp_fuel']     = 236.58 # J/(kg K)
+params['fuel_volume'] = 5 # m3
 
 params['steam flowrate'] = 1820 # kg/s
 params['coolant_dens']   = 1000 #  kg/m3
 params['cp_coolant']     =  4184# J/(mol K) - > J/(kg K)
-params['coolant_volume'] = 13750 * 0.8 # m3
+params['coolant_volume'] = 110 #m3
 
-params['ht_coeff'] = 800000000
+params['ht_coeff'] = 10000000
 params['turbine efficiency'] = 0.8 
 params['condenser efficiency'] = 0.8
 params['pump efficiency'] = 0.8
@@ -1417,7 +1278,7 @@ params['shutdown temp reached'] = False
 params['q_source_status'] = 'in' # is q_source inserted (in) or withdrawn (out)
 
 
-# In[24]:
+# In[22]:
 
 
 '''Setup up initial conditions'''
@@ -1427,7 +1288,7 @@ import scipy.constants as sc
 
 params['malfunction start'] = 9999 * sc.hour 
 params['malfunction end'] = 9999 * sc.hour
-params['shutdown time'] = 4 * sc.hour
+params['shutdown time'] = 9999 * sc.hour
 
 gen_time = params['gen_time'] # retrieve neutron generation time
 params['q_0'] = 0.1
@@ -1443,7 +1304,7 @@ params['reactivity'] = rho_0_over_beta * beta # "rho/beta = 10 cents"
 
 params['temp_0'] = params['temp_o']
 
-params['tau_fake'] = 8 # s
+params['tau_fake'] = 0.5 # s
 params['malfunction subcooling'] = 0.75
 params['alpha_n_malfunction'] = 0
 
@@ -1451,13 +1312,13 @@ params['alpha_n_malfunction'] = 0
 setup_initial_conditions(params)
 
 
-# In[25]:
+# In[23]:
 
 
 '''Evolve the point-reactor'''
 import scipy.constants as const
 
-time_final    = 12 * const.hour
+time_final    = 1 * const.hour
 n_time_stamps = 1000 # number of solution values in time
 
 params['time_final']    = time_final
@@ -1469,21 +1330,25 @@ u_vec_history = run_point_reactor( f_vec, params )
 print("done")
 
 
-# In[26]:
+# In[24]:
 
 
 plot_results(u_vec_history, params)
 
 
+# Neutron density and delayed emitter concentrations follow the expected s-shaped curve of a controlled reactivity insertion into an initially neutronless reactor, with a sharp jump in densities and concentrations that level off around their respective steady state values.
+
 # Neutron and delayed emitter concentrations follow the predicted S-shape pattern, with initial quick growth followed by a horizontal asymptope around steady state.
 
-# In[27]:
+# In[25]:
 
 
 tmp()
 
 
-# In[28]:
+# Coolant and fuel temperatures decrease slightly initially when there is very little heat being generated such that the condenser actually subcools the entering liquid more than it will be heated by the reactor. This phase ends after about 5 minutes, and is followed by a sharp jump in coolant and fuel temperatures mimicking the jump found in the grahs of q''' and heat removed, before more gently increasing over the next three hours to the steady state temperature values of about 350 C for the fuel and 290 C for the coolant. 
+
+# In[26]:
 
 
 import matplotlib.pyplot as plt
@@ -1499,12 +1364,14 @@ plt.legend(["q'''", "heat removed"])
 plt.show()
 
 
-# In[29]:
+# Heat removed and q''' spike initially to about 5 GW with the insertion of the initial neutron source Q before falling just as quickly upon its removal to almost zero. From there, a sharp increase is seen to about 40 GW of total heat produced and removed, which falls off from this peak to about 35 GW after a few hours. This initial peak and then dropoff is due to the fact that the fuel fissioning cross section decreases with temperature, and so as temperature increases to its steady state value then q''' and heat removed will decrease along with it until the steady state temperature is reached.
+
+# In[27]:
 
 
 quants = quantities3(u_vec_history, params, params['time_stamps'])
 plt.figure(figsize=(22, 8))
-plt.plot(params['time_stamps']/3600, quants[0])
+plt.plot(params['time_stamps']/3600, quants[0]/params['beta'])
 plt.grid()
 plt.rc('font', size=12)
 plt.xlabel('Time [h]')
@@ -1514,7 +1381,9 @@ plt.legend(['Total Reactivity','Moderator temperature Reactivity'])
 plt.show()
 
 
-# In[30]:
+# Total reactivty begins positive and then is quickly decreased following the increase in neutron density until steady state is reached. Moderator temperature reactivity decreases smoothly with the increase in moderator temperature to about $0.075.
+
+# In[28]:
 
 
 plt.figure(figsize=(22, 8))
@@ -1526,9 +1395,9 @@ plt.ylabel('Position [cm]')
 plt.title('Regulating Rod Position, Reactor Startup')
 
 
-# Q''' and heat removed increase fairly quickly before reaching steady state in about 5-10 minutes. There is an initial spike in and then loss of heat removed as the neutron source is inserted and then quickly removed from the system, with heat removed staying mostly constant over this period of time.
+# The regulating rod is quickly pushed into the reactor to remove reactivity as neutron density rapidly increases to its steady state value. Once this is achieved, the regulating rod is slowly withdrawn to add reactivity into the reactor in order to counter the increased negative reactivity due to moderator temperature and keep the total reactivity in the reactor at zero.
 
-# In[31]:
+# In[29]:
 
 
 work_data = quantities2(u_vec_history, params, params['time_stamps'])
@@ -1539,11 +1408,11 @@ plt.rc('font', size=12)
 plt.xlabel('Time [h]')
 plt.ylabel('Power [GW]')
 plt.title('Turbine, Condenser, and Net Power vs Time, Reactor Startup')
-plt.legend(['Turbine Power',  'Condenser Power', 'Net Power'])
+plt.legend(['Turbine Power'])
 plt.show()
 
 
-# Condenser work reaches its maximum at the beginning of startup and then decays over time, while turbine work starts at zero until it climbs to its maximum near the beginning of steady state operation, corresponding with turbine work becoming larger than condenser work with net work becoming positive around 0.5 gW. This change in work done corresponds with the second temperature jump after neutron source insertion and removal.
+# Turbine power reaches its peak during the initial neutron source insertion, decreases to zero, and then rapidly increases again to hit its new steady state value once coolant temperatures goes back above 273.15 K. Condenser power starts at zero and smoothly increases until it rounds off at its steady state value. Net power is of course the difference between these two, and since turbine power reaches its steady state value before condenser power does the result is a smoothly decreasing amount of net power done by the reactor.
 
 # In[ ]:
 
