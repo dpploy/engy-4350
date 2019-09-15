@@ -459,6 +459,7 @@ def alpha_tn_func(temp, params):
     
     Nm = ((rho * sc.kilo)/params['mod molar mass']) * sc.N_A * (sc.centi)**3 # number density of the moderator
     d_Nm =  ((d_rho * sc.kilo)/params['mod molar mass']) * sc.N_A * (sc.centi)**3 #dNm/dTm
+    d_Nm = d_Nm * sc.zepto * sc.milli
     
     mod_macro_a = params['mod micro a'] * Nm # macroscopic absorption cross section of the moderator
     mod_macro_s = params['mod micro s'] * Nm # macroscopic scattering cross section of the moderator
@@ -468,12 +469,13 @@ def alpha_tn_func(temp, params):
     d_F = -1*(params['fuel macro a'] * params['mod micro a'] * d_Nm)/(params['fuel macro a'] + mod_macro_a)**2
     
     # Resonance escape integral, P
-    P = math.exp((-1 * params['n fuel'] * (params['fuel_volume']) * params['I'] * sc.zepto * sc.milli)/(mod_macro_s * 3000))
+    P = math.exp((-1 * params['n fuel'] * (params['fuel_volume']) * params['I'])/(mod_macro_s * 3000))
     #dP/dTm
     d_P = P * (-1 * params['n fuel'] * params['fuel_volume'] * sc.centi**3 * params['mod micro s'] * d_Nm)/(mod_macro_s * 3000 * sc.centi**3)**2
     
     Eth = 0.0862 * temp # convert temperature to energy in MeV
     E1 = mod_macro_s/math.log(params['E0']/Eth) # neutron thermalization macroscopic cross section
+    
     Df = 1/(3 * mod_macro_s * (1 - params['mod mu0'])) # neutron diffusion coefficient
     tau = Df/E1 # fermi age, tau
     #dTau/dTm
@@ -481,7 +483,7 @@ def alpha_tn_func(temp, params):
     
     L = math.sqrt(1/(3 * mod_macro_s * mod_macro_a * (1 - params['mod mu0']))) # diffusion length L
     # dL/dTm
-    d_L = 1/(2 * math.sqrt((-2 * d_Nm)/(3 * params['mod micro s'] * params['mod micro a'] * Nm**3 * (1 - params['mod mu0']))))
+    d_L = 1/(2 * math.sqrt((-2 * d_Nm * sc.zepto * sc.milli)/(3 * params['mod micro s'] * params['mod micro a'] * (Nm * sc.zepto * sc.milli)**3 * (1 - params['mod mu0']))))
     
     # left term of the numerator of the moderator temperature feedback coefficient, alpha
     left_1st_term = d_tau * (params['buckling']**2 + L**2 * params['buckling']**4) #holding L as constant
@@ -489,6 +491,7 @@ def alpha_tn_func(temp, params):
     left_term = (P * F) * (left_1st_term + left_2nd_term) # combining with P and F held as constant
     
     # right term of the numerator of the moderator temperature feedback coefficient, alpha
+
     right_1st_term = (-1) * (1 + ((tau + L**2) * params['buckling']**2) + tau * L**2 * params['buckling']**4) # num as const
     right_2nd_term = F * d_P # holding thermal utilization as constant
     right_3rd_term = P * d_F # holding resonance escpae as constant
@@ -497,9 +500,11 @@ def alpha_tn_func(temp, params):
     # numerator and denominator
     numerator = left_term + right_term
     denominator = params['eta'] * params['epsilon'] * (F * P)**2
+    
     alpha_tn = numerator/denominator
     
-    alpha_tn = alpha_tn * (sc.milli * sc.zepto * sc.milli * sc.milli) # adjust for barns
+    
+    alpha_tn = alpha_tn/5
     return alpha_tn
 
 
@@ -1221,12 +1226,12 @@ params = dict()
 params['gen_time']     = 1.0e-4  # s
 params['beta']         = 6.5e-3  # 
 params['k_infty']      = 1.34477
-params['buckling'] = (math.pi/2.375)**2.0 + (2.405/4.1)**2.0 # geometric buckling; B = (pi/R)^2 + (2.405/H)^2
+params['buckling'] = (math.pi/237.5)**2.0 + (2.405/410)**2.0 # geometric buckling; B = (pi/R)^2 + (2.405/H)^2
 params['q_0'] = 0.1
 params['fuel macro a'] = 1.34226126162 #fuel macroscopic absorption cross section, cm^-1
 params['mod micro a'] = 0.332 * sc.zepto * sc.milli #moderator microscopic absorption cross section, cm^2
 params['n fuel'] = 1.9577906e+21 #number density of the fuel, atoms/cm^3
-params['I'] = 40.9870483 #resonance integral, I (dimensionless)
+params['I'] = 40.9870483 * sc.zepto * sc.milli  #resonance integral, I (dimensionless)
 params['mod micro s'] = 20 * sc.zepto * sc.milli # moderator microscopic scattering cross section, cm^2
 params['xi'] = 1 # average logarithmic energy decrement for light water
 params['E0'] = 2 * sc.mega # energy of a neutron produced by fissioning, in electron volts
@@ -1286,8 +1291,8 @@ params['q_source_status'] = 'in' # is q_source inserted (in) or withdrawn (out)
 import numpy as np
 import scipy.constants as sc
 
-params['malfunction start'] = 9999 * sc.hour 
-params['malfunction end'] = 9999 * sc.hour
+params['malfunction start'] = 1 * sc.hour 
+params['malfunction end'] = 1 * sc.hour + 15 * sc.minute
 params['shutdown time'] = 9999 * sc.hour
 
 gen_time = params['gen_time'] # retrieve neutron generation time
@@ -1346,7 +1351,7 @@ plot_results(u_vec_history, params)
 tmp()
 
 
-# Coolant and fuel temperatures decrease slightly initially when there is very little heat being generated such that the condenser actually subcools the entering liquid more than it will be heated by the reactor. This phase ends after about 5 minutes, and is followed by a sharp jump in coolant and fuel temperatures mimicking the jump found in the grahs of q''' and heat removed, before more gently increasing over the next three hours to the steady state temperature values of about 350 C for the fuel and 290 C for the coolant. 
+# Coolant and fuel temperatures decrease slightly initially when there is very little heat being generated such that the condenser actually subcools the entering liquid more than it will be heated by the reactor. This phase ends after about 5 minutes, and is followed by a sharp period of little increase in coolant temperature as the heat produced by the reactor is not enough after subcooling through the condenser to cause large increases in coolant temperature, followed jump in coolant and fuel temperatures mimicking the jump found in the grahs of q''' and heat removed, before more gently increasing over the next three hours to the steady state temperature values of about 830 C for the fuel and 300 C for the coolant. 
 
 # In[26]:
 
@@ -1364,7 +1369,7 @@ plt.legend(["q'''", "heat removed"])
 plt.show()
 
 
-# Heat removed and q''' spike initially to about 5 GW with the insertion of the initial neutron source Q before falling just as quickly upon its removal to almost zero. From there, a sharp increase is seen to about 40 GW of total heat produced and removed, which falls off from this peak to about 35 GW after a few hours. This initial peak and then dropoff is due to the fact that the fuel fissioning cross section decreases with temperature, and so as temperature increases to its steady state value then q''' and heat removed will decrease along with it until the steady state temperature is reached.
+# Heat removed and q''' spike initially to about 0.8 GW with the insertion of the initial neutron source Q before falling just as quickly upon its removal to almost zero. From there, a sharp increase is seen to about 4.5 GW of total heat produced and removed.
 
 # In[27]:
 
@@ -1381,7 +1386,7 @@ plt.legend(['Total Reactivity','Moderator temperature Reactivity'])
 plt.show()
 
 
-# Total reactivty begins positive and then is quickly decreased following the increase in neutron density until steady state is reached. Moderator temperature reactivity decreases smoothly with the increase in moderator temperature to about $0.075.
+# Total reactivty begins positive and then is quickly decreased following the increase in neutron density until steady state is reached. Moderator temperature reactivity decreases smoothly with the increase in moderator temperature to about $0.05.
 
 # In[28]:
 
@@ -1412,7 +1417,7 @@ plt.legend(['Turbine Power'])
 plt.show()
 
 
-# Turbine power reaches its peak during the initial neutron source insertion, decreases to zero, and then rapidly increases again to hit its new steady state value once coolant temperatures goes back above 273.15 K. Condenser power starts at zero and smoothly increases until it rounds off at its steady state value. Net power is of course the difference between these two, and since turbine power reaches its steady state value before condenser power does the result is a smoothly decreasing amount of net power done by the reactor.
+# Turbine power starts slightly above zero during initial neutron insertion and then quickly falls to zero, mimicking heat removed. It then reaches a slight initial peak before falling to a new steady state value. The peak can be explained due to a slight decrease in coolant temperature at that point from moderator reactivity feedback.
 
 # In[ ]:
 
