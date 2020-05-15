@@ -1,5 +1,5 @@
 # Engy-4350 Nuclear Reactor Engineering
-[![NBViewer](https://github.com/jupyter/design/blob/master/logos/Badges/nbviewer_badge.svg)](http://nbviewer.jupyter.org/github/dpploy/engy-4350/tree/master/notebooks)
+[![NBViewer](https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg)](http://nbviewer.jupyter.org/github/dpploy/engy-4350/tree/master/notebooks)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dpploy/engy-4350/master)
 [![Azure Notebooks](https://notebooks.azure.com/launch.svg)](https://notebooks.azure.com/dealmeidavf/projects/engy-4350)
 
