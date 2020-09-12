@@ -1,9 +1,10 @@
 # Engy-4350 Nuclear Reactor Engineering
+[![NBViewer](https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg)](http://nbviewer.jupyter.org/github/dpploy/engy-4350/tree/master/notebooks)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dpploy/engy-4350/master)
+[![Azure Notebooks](https://notebooks.azure.com/launch.svg)](https://notebooks.azure.com/dealmeidavf/projects/engy-4350)
+
 ![Website](https://img.shields.io/website/https/github.com/dpploy/engy-4350.svg)
 [![Repo-Size](https://img.shields.io/github/repo-size/dpploy/engy-4350)](https://github.com/dpploy/engy-4350)
-[![Azure Notebooks](https://notebooks.azure.com/launch.svg)](https://notebooks.azure.com/dealmeidavf/projects/engy-4350)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dpploy/engy-4350/master)
-[![NBViewer](https://github.com/jupyter/design/blob/master/logos/Badges/nbviewer_badge.svg)](http://nbviewer.jupyter.org/github/dpploy/engy-4350/tree/master/notebooks)
 
    + [University of Massachusetts Lowell](https://www.uml.edu/), Spring 2019
    + [Dept. of Chemical Engineering](https://www.uml.edu/Engineering/Chemical/) (Nuclear Program)
@@ -34,4 +35,4 @@ clicking on individual notebook files, you will access the live course notebooks
 
 Thanks in advance for inputs to improve this course.\
 Regards,\
-Valmor.
+Prof. Valmor F. de Almeida
