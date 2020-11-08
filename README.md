@@ -1,7 +1,6 @@
 # Engy-4350 Nuclear Reactor Engineering
 [![NBViewer](https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg)](http://nbviewer.jupyter.org/github/dpploy/engy-4350/tree/master/notebooks)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/dpploy/engy-4350/master)
-[![Azure Notebooks](https://notebooks.azure.com/launch.svg)](https://notebooks.azure.com/dealmeidavf/projects/engy-4350)
 
 ![Website](https://img.shields.io/website/https/github.com/dpploy/engy-4350.svg)
 [![Repo-Size](https://img.shields.io/github/repo-size/dpploy/engy-4350)](https://github.com/dpploy/engy-4350)
@@ -21,7 +20,6 @@ the following ways:**
 
 + Static HTML version of the notebooks will be displayed on the current browser if a
 notebook file listed in the code repository is clicked on. This will not allow for rendering mathematical formulae. Alternatively you can render the notebooks on [NBViewer](http://nbviewer.jupyter.org/) by clicking on the `render|nbviewer` badge above.
-+ Click on the `Azure Notebooks|launch` above to use the Azure Notebook service; this is practical since you can use your UMass Lowell credentials to login into the site and use the GitHub upload option to clone the repository in your account.
 + Click on the `launch/binder` badge above to launch a Jupyter Notebook server for the
 course notebooks. There will be a delay for the Binder cloud server to build a
 Python (Anaconda) programming environment for you. However once it is done, it will
